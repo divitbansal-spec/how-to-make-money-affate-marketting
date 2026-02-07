@@ -164,11 +164,16 @@ async function loadTransactions() {
   });
 }
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) entry.target.classList.add("visible");
-  });
-}, { threshold: 0.1 });
+const revealElements = document.querySelectorAll(".reveal");
 
-document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+if ("IntersectionObserver" in window) {
+  revealElements.forEach((el) => el.classList.add("animate-init"));
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add("visible");
+    });
+  }, { threshold: 0.1 });
+  revealElements.forEach((el) => observer.observe(el));
+}
+
 selectedPlanInput.value = "FREE";

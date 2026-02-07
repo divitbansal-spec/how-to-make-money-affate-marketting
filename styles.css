@@ -56,8 +56,9 @@ input {
 .qr-placeholder { color: var(--muted); font-style: italic; }
 footer { padding: 2rem 1rem 3rem; border-top: 1px solid #2a355e; color: var(--muted); font-size: 0.93rem; }
 .hidden { display: none !important; }
-.reveal { opacity: 0; transform: translateY(20px); transition: .5s ease; }
-.reveal.visible { opacity: 1; transform: none; }
+.reveal { opacity: 1; transform: none; }
+.reveal.animate-init { opacity: 0; transform: translateY(20px); transition: .5s ease; }
+.reveal.animate-init.visible { opacity: 1; transform: none; }
 dialog { border: none; border-radius: 14px; max-width: 380px; width: 92%; background: #121b34; color: var(--text); }
 .auth-actions { display: grid; grid-template-columns: repeat(3,1fr); gap: .5rem; margin-top: .8rem; }
 @media (max-width: 640px) {
