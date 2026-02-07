@@ -41,6 +41,13 @@ Steps:
 3. Wait for the `Deploy static site to GitHub Pages` workflow to finish.
 4. Open your Pages URL again.
 
+5. If it still shows 404, check **Actions** tab and confirm the `Deploy static site to GitHub Pages` workflow completed successfully.
+6. Use the correct URL format:
+   - User/Org site: `https://<username>.github.io/`
+   - Project site: `https://<username>.github.io/<repo-name>/`
+
+This repo also deploys a `404.html` fallback (same as `index.html`) to reduce route-level 404 issues on direct URL access.
+
 ## Admin account
 
 Create the admin account securely in Firebase Auth (Email/Password), then assign admin custom claim using Firebase Admin SDK or Cloud Functions.
