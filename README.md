@@ -1,0 +1,51 @@
+# Affiliate Start Website
+
+Modern conversion-focused course site with Firebase Authentication, Firestore-backed plan purchases, and a restricted admin workflow.
+
+## Features
+
+- Mobile-first landing page with trust-focused copy and honest messaging.
+- Plans: Free (₹0), Basic (₹10), Plus (₹50), Pro (₹150).
+- Clear note that **every paid plan includes the full course**.
+- UPI transaction submission and manual verification workflow.
+- Role-aware interface:
+  - Guest: landing + free content only.
+  - User: paid content only when payment is approved.
+  - Admin: transaction verification panel.
+- Generic authentication error messages to avoid account enumeration.
+- Firestore Security Rules for server-side enforcement.
+
+## Setup
+
+1. Create a Firebase project.
+2. Enable Email/Password authentication.
+3. Copy `firebase-config.example.js` to `firebase-config.js` and fill credentials.
+4. Deploy Firestore rules:
+   ```bash
+   firebase deploy --only firestore:rules
+   ```
+5. Host static site.
+
+## Admin account
+
+Create the admin account securely in Firebase Auth (Email/Password), then assign admin custom claim using Firebase Admin SDK or Cloud Functions.
+
+- Admin name: Divit Bansal
+- Initial password placeholder: `root123` (change immediately in production)
+
+Never store admin credentials in frontend code.
+
+## Firestore data model
+
+- `users/{uid}`
+  - `email`, `displayName`, `role`, `createdAt`
+- `purchases/{uid}`
+  - `uid`, `plan`, `transactionId`, `status`, `updatedAt`, `verifiedAt`
+- `courseContent/{docId}`
+  - `tier: "free" | "paid"`, `title`, `body`
+
+## Security notes
+
+- Passwords are handled only by Firebase Auth and never stored in plaintext.
+- Access control is based on auth state + Firestore rules + custom admin claim.
+- No localStorage-based authorization logic is used.

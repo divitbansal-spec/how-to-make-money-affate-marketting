@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function approvedPlan(uid) {
+      return exists(/databases/$(database)/documents/purchases/$(uid))
+        && get(/databases/$(database)/documents/purchases/$(uid)).data.status == "Approved";
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) && !('role' in request.resource.data)
+                    || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /purchases/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid) && request.resource.data.uid == request.auth.uid
+                            && request.resource.data.status == "Pending";
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /courseContent/{docId} {
+      allow read: if resource.data.tier == "free"
+        || (signedIn() && approvedPlan(request.auth.uid));
+      allow write: if isAdmin();
+    }
+  }
+}
