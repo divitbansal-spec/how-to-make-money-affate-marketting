@@ -26,6 +26,21 @@ Modern conversion-focused course site with Firebase Authentication, Firestore-ba
    ```
 5. Host static site.
 
+
+## GitHub Pages deployment (fixes 404)
+
+If you are seeing a GitHub Pages **404 File not found**, it usually means Pages is not publishing this repository root yet.
+
+This repo now includes:
+- `.github/workflows/deploy-pages.yml` to deploy the project root via GitHub Actions Pages.
+- `.nojekyll` to avoid Jekyll processing side effects.
+
+Steps:
+1. Push your branch to GitHub.
+2. In **Settings → Pages**, set **Source** to **GitHub Actions**.
+3. Wait for the `Deploy static site to GitHub Pages` workflow to finish.
+4. Open your Pages URL again.
+
 ## Admin account
 
 Create the admin account securely in Firebase Auth (Email/Password), then assign admin custom claim using Firebase Admin SDK or Cloud Functions.
