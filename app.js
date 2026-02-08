@@ -46,6 +46,24 @@ function logAuthError(context, error) {
   console.error(`[auth:${context}]`, code, error);
 }
 
+function getSetupHint(error) {
+  const code = error && typeof error === "object" && "code" in error ? error.code : "";
+  const setupCodes = new Set([
+    "auth/unauthorized-domain",
+    "auth/operation-not-allowed",
+    "auth/network-request-failed",
+    "auth/invalid-api-key",
+    "auth/app-not-authorized",
+    "auth/api-key-not-valid.-please-pass-a-valid-api-key."
+  ]);
+
+  if (setupCodes.has(code)) {
+    return " Setup issue detected. Check README Firebase checklist and browser console [auth:*] code.";
+  }
+
+  return "";
+}
+
 document.querySelectorAll("[data-plan]").forEach((btn) => {
   btn.addEventListener("click", () => {
     selectedPlan = btn.dataset.plan;
@@ -79,7 +97,7 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
     }
   } catch (error) {
     logAuthError("signup", error);
-    authMessage.textContent = "Unable to complete authentication. Please try again.";
+    authMessage.textContent = `Unable to complete authentication. Please try again.${getSetupHint(error)}`;
   }
 });
 
@@ -92,7 +110,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     authDialog.close();
   } catch (error) {
     logAuthError("login", error);
-    authMessage.textContent = "Unable to complete authentication. Please try again.";
+    authMessage.textContent = `Unable to complete authentication. Please try again.${getSetupHint(error)}`;
   }
 });
 

@@ -55,9 +55,11 @@ The UI intentionally shows a generic message for security. To debug safely, open
 Checklist:
 1. **Authentication → Sign-in method**: Email/Password must be enabled.
 2. **Authentication → Settings → Authorized domains**: add your deployed domain (e.g. `<username>.github.io`) and any custom domain.
-3. **Firestore Database**: create database (Production or Test mode) and deploy `firestore.rules`.
-4. Confirm `firebase-config.js` matches the same Firebase project used for Auth + Firestore.
-5. If signup says error, check if the account was still created in Firebase Authentication (profile write can fail separately if Firestore is not ready).
+3. **Google Cloud Console → APIs & Services**: ensure **Identity Toolkit API** is enabled for this Firebase project.
+4. If API key restrictions are enabled, allow your web referrer domain (`https://<username>.github.io/*`) or temporarily remove restrictions for testing.
+5. **Firestore Database**: create database (Production or Test mode) and deploy `firestore.rules`.
+6. Confirm `firebase-config.js` matches the same Firebase project used for Auth + Firestore.
+7. If signup says error, check if the account was still created in Firebase Authentication (profile write can fail separately if Firestore is not ready).
 
 ## Admin account
 
