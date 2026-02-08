@@ -48,6 +48,17 @@ Steps:
 
 This repo also deploys a `404.html` fallback (same as `index.html`) to reduce route-level 404 issues on direct URL access.
 
+## If login/signup shows generic auth error
+
+The UI intentionally shows a generic message for security. To debug safely, open browser console and check `[auth:*]` error codes.
+
+Checklist:
+1. **Authentication → Sign-in method**: Email/Password must be enabled.
+2. **Authentication → Settings → Authorized domains**: add your deployed domain (e.g. `<username>.github.io`) and any custom domain.
+3. **Firestore Database**: create database (Production or Test mode) and deploy `firestore.rules`.
+4. Confirm `firebase-config.js` matches the same Firebase project used for Auth + Firestore.
+5. If signup says error, check if the account was still created in Firebase Authentication (profile write can fail separately if Firestore is not ready).
+
 ## Admin account
 
 Create the admin account securely in Firebase Auth (Email/Password), then assign admin custom claim using Firebase Admin SDK or Cloud Functions.

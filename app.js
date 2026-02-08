@@ -40,6 +40,12 @@ const txList = document.getElementById("txList");
 let selectedPlan = "free";
 let currentUser = null;
 
+
+function logAuthError(context, error) {
+  const code = error && typeof error === "object" && "code" in error ? error.code : "unknown";
+  console.error(`[auth:${context}]`, code, error);
+}
+
 document.querySelectorAll("[data-plan]").forEach((btn) => {
   btn.addEventListener("click", () => {
     selectedPlan = btn.dataset.plan;
@@ -53,18 +59,26 @@ openAuthBtn.addEventListener("click", () => authDialog.showModal());
 logoutBtn.addEventListener("click", async () => signOut(auth));
 
 document.getElementById("signupBtn").addEventListener("click", async () => {
+  const email = document.getElementById("emailInput").value;
+  const password = document.getElementById("passwordInput").value;
+
   try {
-    const email = document.getElementById("emailInput").value;
-    const password = document.getElementById("passwordInput").value;
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, "users", cred.user.uid), {
-      email,
-      role: "user",
-      createdAt: serverTimestamp(),
-      displayName: "Learner"
-    }, { merge: true });
-    authMessage.textContent = "Account created successfully.";
-  } catch {
+
+    try {
+      await setDoc(doc(db, "users", cred.user.uid), {
+        email,
+        role: "user",
+        createdAt: serverTimestamp(),
+        displayName: "Learner"
+      }, { merge: true });
+      authMessage.textContent = "Account created successfully.";
+    } catch (profileError) {
+      logAuthError("profile-write", profileError);
+      authMessage.textContent = "Account created. You can login now.";
+    }
+  } catch (error) {
+    logAuthError("signup", error);
     authMessage.textContent = "Unable to complete authentication. Please try again.";
   }
 });
@@ -76,7 +90,8 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     await signInWithEmailAndPassword(auth, email, password);
     authMessage.textContent = "Login successful.";
     authDialog.close();
-  } catch {
+  } catch (error) {
+    logAuthError("login", error);
     authMessage.textContent = "Unable to complete authentication. Please try again.";
   }
 });
