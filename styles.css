@@ -64,3 +64,5 @@ dialog { border: none; border-radius: 14px; max-width: 380px; width: 92%; backgr
 @media (max-width: 640px) {
   .topbar nav a { display: none; }
 }
+
+.muted { color: var(--muted); font-size: 0.85rem; display: block; margin-top: 0.3rem; }

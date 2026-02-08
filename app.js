@@ -29,6 +29,7 @@ const authDialog = document.getElementById("authDialog");
 const openAuthBtn = document.getElementById("openAuthBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const authMessage = document.getElementById("authMessage");
+const authDebugCode = document.getElementById("authDebugCode");
 const paymentForm = document.getElementById("paymentForm");
 const selectedPlanInput = document.getElementById("selectedPlanInput");
 const paymentStatus = document.getElementById("paymentStatus");
@@ -46,22 +47,26 @@ function logAuthError(context, error) {
   console.error(`[auth:${context}]`, code, error);
 }
 
-function getSetupHint(error) {
+function getFriendlyAuthMessage(error) {
   const code = error && typeof error === "object" && "code" in error ? error.code : "";
-  const setupCodes = new Set([
-    "auth/unauthorized-domain",
-    "auth/operation-not-allowed",
-    "auth/network-request-failed",
-    "auth/invalid-api-key",
-    "auth/app-not-authorized",
-    "auth/api-key-not-valid.-please-pass-a-valid-api-key."
-  ]);
+  const domain = window.location.hostname;
 
-  if (setupCodes.has(code)) {
-    return " Setup issue detected. Check README Firebase checklist and browser console [auth:*] code.";
-  }
+  const setupMessageMap = {
+    "auth/unauthorized-domain": `Unable to complete authentication. Add "${domain}" to Firebase Auth > Settings > Authorized domains.`,
+    "auth/operation-not-allowed": "Unable to complete authentication. Enable Email/Password in Firebase Auth > Sign-in method.",
+    "auth/invalid-api-key": "Unable to complete authentication. Verify firebase-config.js API key and project details.",
+    "auth/app-not-authorized": "Unable to complete authentication. Check API key restrictions and allow this website domain.",
+    "auth/api-key-not-valid.-please-pass-a-valid-api-key.": "Unable to complete authentication. API key is invalid for this Firebase project.",
+    "auth/network-request-failed": "Unable to complete authentication. Check internet/VPN/firewall and try again."
+  };
 
-  return "";
+  return setupMessageMap[code] || "Unable to complete authentication. Please try again.";
+}
+
+function setAuthFeedback(message, error = null) {
+  authMessage.textContent = message;
+  const code = error && typeof error === "object" && "code" in error ? error.code : "";
+  authDebugCode.textContent = code ? `Debug code: ${code}` : "";
 }
 
 document.querySelectorAll("[data-plan]").forEach((btn) => {
@@ -90,14 +95,14 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
         createdAt: serverTimestamp(),
         displayName: "Learner"
       }, { merge: true });
-      authMessage.textContent = "Account created successfully.";
+      setAuthFeedback("Account created successfully.");
     } catch (profileError) {
       logAuthError("profile-write", profileError);
-      authMessage.textContent = "Account created. You can login now.";
+      setAuthFeedback("Account created. You can login now.", profileError);
     }
   } catch (error) {
     logAuthError("signup", error);
-    authMessage.textContent = `Unable to complete authentication. Please try again.${getSetupHint(error)}`;
+    setAuthFeedback(getFriendlyAuthMessage(error), error);
   }
 });
 
@@ -106,11 +111,11 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     const email = document.getElementById("emailInput").value;
     const password = document.getElementById("passwordInput").value;
     await signInWithEmailAndPassword(auth, email, password);
-    authMessage.textContent = "Login successful.";
+    setAuthFeedback("Login successful.");
     authDialog.close();
   } catch (error) {
     logAuthError("login", error);
-    authMessage.textContent = `Unable to complete authentication. Please try again.${getSetupHint(error)}`;
+    setAuthFeedback(getFriendlyAuthMessage(error), error);
   }
 });
 

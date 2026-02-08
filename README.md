@@ -61,6 +61,12 @@ Checklist:
 6. Confirm `firebase-config.js` matches the same Firebase project used for Auth + Firestore.
 7. If signup says error, check if the account was still created in Firebase Authentication (profile write can fail separately if Firestore is not ready).
 
+
+Quick mapping for debug codes:
+- `auth/unauthorized-domain` → Add your exact host to **Authorized domains** (for GitHub Pages usually `username.github.io`).
+- `auth/operation-not-allowed` → Enable **Email/Password** provider.
+- `auth/app-not-authorized` or `auth/invalid-api-key` → Check API key restrictions and project config mismatch.
+
 ## Admin account
 
 Create the admin account securely in Firebase Auth (Email/Password), then assign admin custom claim using Firebase Admin SDK or Cloud Functions.
