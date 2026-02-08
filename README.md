@@ -67,6 +67,12 @@ Quick mapping for debug codes:
 - `auth/operation-not-allowed` → Enable **Email/Password** provider.
 - `auth/app-not-authorized` or `auth/invalid-api-key` → Check API key restrictions and project config mismatch.
 
+
+If you still get errors, read the **Debug code** shown under the login message and apply the matching fix immediately:
+- `auth/unauthorized-domain`: add your current host in Authorized domains.
+- `auth/operation-not-allowed`: enable Email/Password provider.
+- `auth/app-not-authorized` or `auth/invalid-api-key`: fix API key restrictions/project mismatch.
+
 ## Admin account
 
 Create the admin account securely in Firebase Auth (Email/Password), then assign admin custom claim using Firebase Admin SDK or Cloud Functions.

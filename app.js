@@ -30,6 +30,8 @@ const openAuthBtn = document.getElementById("openAuthBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const authMessage = document.getElementById("authMessage");
 const authDebugCode = document.getElementById("authDebugCode");
+const authFixBox = document.getElementById("authFixBox");
+const authFixSteps = document.getElementById("authFixSteps");
 const paymentForm = document.getElementById("paymentForm");
 const selectedPlanInput = document.getElementById("selectedPlanInput");
 const paymentStatus = document.getElementById("paymentStatus");
@@ -67,7 +69,54 @@ function setAuthFeedback(message, error = null) {
   authMessage.textContent = message;
   const code = error && typeof error === "object" && "code" in error ? error.code : "";
   authDebugCode.textContent = code ? `Debug code: ${code}` : "";
+  renderFixSteps(error);
 }
+
+function getFixSteps(errorCode) {
+  const domain = window.location.hostname;
+  const map = {
+    "auth/unauthorized-domain": [
+      `Open Firebase Console > Authentication > Settings > Authorized domains.`,
+      `Add this exact domain: ${domain}`,
+      "Save and retry login in 1 minute."
+    ],
+    "auth/operation-not-allowed": [
+      "Open Firebase Console > Authentication > Sign-in method.",
+      "Enable Email/Password provider and save.",
+      "Retry signup/login."
+    ],
+    "auth/invalid-api-key": [
+      "Open firebase-config.js and verify apiKey/projectId/authDomain belong to same project.",
+      "In Google Cloud Console, remove/relax API key restrictions for testing.",
+      "Retry login."
+    ],
+    "auth/app-not-authorized": [
+      "In Google Cloud Console, open API key restrictions for this key.",
+      `Allow HTTP referrer: https://${domain}/*`,
+      "Retry login after saving."
+    ],
+    "auth/network-request-failed": [
+      "Turn off VPN/ad-blocker temporarily.",
+      "Try a different network and refresh page.",
+      "Retry login."
+    ]
+  };
+
+  return map[errorCode] || ["Check debug code below and follow README troubleshooting section."];
+}
+
+function renderFixSteps(error = null) {
+  const code = error && typeof error === "object" && "code" in error ? error.code : "";
+  const steps = getFixSteps(code);
+  authFixSteps.innerHTML = "";
+  steps.forEach((step) => {
+    const li = document.createElement("li");
+    li.textContent = step;
+    authFixSteps.appendChild(li);
+  });
+  authFixBox.classList.toggle("hidden", !code);
+}
+
 
 document.querySelectorAll("[data-plan]").forEach((btn) => {
   btn.addEventListener("click", () => {
