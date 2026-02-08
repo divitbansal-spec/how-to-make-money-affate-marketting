@@ -3,7 +3,7 @@
  *
  * Usage:
  *   SERVICE_ACCOUNT_PATH=./serviceAccountKey.json \
- *   ADMIN_EMAIL=divitnadmin7@affiliate-start.in \
+ *   ADMIN_EMAIL=DivitNAdmin7@gmail.com \
  *   ADMIN_PASSWORD='rootpassadmin142637' \
  *   ADMIN_DISPLAY_NAME='DivitNAdmin7' \
  *   node scripts/create-admin.mjs
@@ -18,12 +18,12 @@ if (!serviceAccountPath) {
   throw new Error("Missing SERVICE_ACCOUNT_PATH env var.");
 }
 
-const adminEmail = process.env.ADMIN_EMAIL;
+const adminEmail = process.env.ADMIN_EMAIL || "DivitNAdmin7@gmail.com";
 const adminPassword = process.env.ADMIN_PASSWORD;
 const adminDisplayName = process.env.ADMIN_DISPLAY_NAME || "DivitNAdmin7";
 
-if (!adminEmail || !adminPassword) {
-  throw new Error("Missing ADMIN_EMAIL or ADMIN_PASSWORD env var.");
+if (!adminPassword) {
+  throw new Error("Missing ADMIN_PASSWORD env var.");
 }
 
 const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));

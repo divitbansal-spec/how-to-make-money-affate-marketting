@@ -80,7 +80,7 @@ Use the secure server-side bootstrap script to create/update the admin and apply
 ### Required admin credentials (as requested)
 - Admin name: `DivitNAdmin7`
 - Admin password: `rootpassadmin142637`
-- Admin login email (required by Firebase Auth): `divitnadmin7@affiliate-start.in`
+- Admin login email (required by Firebase Auth): `DivitNAdmin7@gmail.com`
 
 ### Step-by-step setup
 1. In Firebase Console, open **Project Settings → Service accounts**.
@@ -92,13 +92,13 @@ Use the secure server-side bootstrap script to create/update the admin and apply
 4. Run bootstrap script:
    ```bash
    SERVICE_ACCOUNT_PATH=./serviceAccountKey.json \
-   ADMIN_EMAIL=divitnadmin7@affiliate-start.in \
+   ADMIN_EMAIL=DivitNAdmin7@gmail.com \
    ADMIN_PASSWORD='rootpassadmin142637' \
    ADMIN_DISPLAY_NAME='DivitNAdmin7' \
    node scripts/create-admin.mjs
    ```
 5. Login on the website using:
-   - Email: `divitnadmin7@affiliate-start.in`
+   - Email: `DivitNAdmin7@gmail.com`
    - Password: `rootpassadmin142637`
 
 Notes:
