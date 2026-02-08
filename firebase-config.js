@@ -1,6 +1,6 @@
 // Project Firebase config provided by user.
 export const firebaseConfig = {
-  apiKey: "AIzaSyAZlQE5oLcsEQysU2EcqD1oJJn3_NZ528",
+  apiKey: "AIzaSyAZlQE5oLcsEQysU2EcqD1oOJJn3_NZ528",
   authDomain: "course-1-66b94.firebaseapp.com",
   projectId: "course-1-66b94",
   storageBucket: "course-1-66b94.firebasestorage.app",
