@@ -82,24 +82,49 @@ Use the secure server-side bootstrap script to create/update the admin and apply
 - Admin password: `rootpassadmin142637`
 - Admin login email (required by Firebase Auth): `DivitNAdmin7@gmail.com`
 
-### Step-by-step setup
+### Step-by-step setup (do this locally, not in browser)
 1. In Firebase Console, open **Project Settings → Service accounts**.
-2. Click **Generate new private key** and save the JSON as `serviceAccountKey.json` in repo root (this file is gitignored).
-3. Install admin SDK once:
+2. Click **Generate new private key** and save as `serviceAccountKey.json` in repo root (gitignored).
+3. Install dependencies:
    ```bash
-   npm install firebase-admin
+   npm install
    ```
-4. Run bootstrap script:
+4. Create/update admin user and claim:
    ```bash
    SERVICE_ACCOUNT_PATH=./serviceAccountKey.json \
-   ADMIN_EMAIL=DivitNAdmin7@gmail.com \
-   ADMIN_PASSWORD='rootpassadmin142637' \
-   ADMIN_DISPLAY_NAME='DivitNAdmin7' \
-   node scripts/create-admin.mjs
+ADMIN_EMAIL=DivitNAdmin7@gmail.com \
+ADMIN_PASSWORD='rootpassadmin142637' \
+ADMIN_DISPLAY_NAME='DivitNAdmin7' \
+npm run admin:create
    ```
-5. Login on the website using:
+5. Verify user exists + admin claim:
+   ```bash
+   SERVICE_ACCOUNT_PATH=./serviceAccountKey.json \
+ADMIN_EMAIL=DivitNAdmin7@gmail.com \
+npm run admin:check
+   ```
+   Expected output includes:
+   - `Admin user found.`
+   - `admin claim: true`
+6. Login on website with:
    - Email: `DivitNAdmin7@gmail.com`
    - Password: `rootpassadmin142637`
+
+
+PowerShell (Windows) equivalent:
+```powershell
+$env:SERVICE_ACCOUNT_PATH = "./serviceAccountKey.json"
+$env:ADMIN_EMAIL = "DivitNAdmin7@gmail.com"
+$env:ADMIN_PASSWORD = "rootpassadmin142637"
+$env:ADMIN_DISPLAY_NAME = "DivitNAdmin7"
+npm run admin:create
+npm run admin:check
+```
+
+If still not visible in Firebase Authentication list:
+- Make sure service account belongs to the **same project** as `firebase-config.js` (`course-1-66b94`).
+- Hard refresh Firebase Console users page.
+- Re-run `npm run admin:create` then `npm run admin:check`.
 
 Notes:
 - Admin route visibility in UI depends on Firebase custom claim `admin: true`.

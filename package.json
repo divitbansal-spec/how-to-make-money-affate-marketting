@@ -1,0 +1,12 @@
+{
+  "name": "affiliate-start-admin-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "admin:create": "node scripts/create-admin.mjs",
+    "admin:check": "node scripts/check-admin.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}
