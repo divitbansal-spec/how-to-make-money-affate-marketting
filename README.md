@@ -75,12 +75,35 @@ If you still get errors, read the **Debug code** shown under the login message a
 
 ## Admin account
 
-Create the admin account securely in Firebase Auth (Email/Password), then assign admin custom claim using Firebase Admin SDK or Cloud Functions.
+Use the secure server-side bootstrap script to create/update the admin and apply custom claim `admin: true`.
 
-- Admin name: Divit Bansal
-- Initial password placeholder: `root123` (change immediately in production)
+### Required admin credentials (as requested)
+- Admin name: `DivitNAdmin7`
+- Admin password: `rootpassadmin142637`
+- Admin login email (required by Firebase Auth): `divitnadmin7@affiliate-start.in`
 
-Never store admin credentials in frontend code.
+### Step-by-step setup
+1. In Firebase Console, open **Project Settings → Service accounts**.
+2. Click **Generate new private key** and save the JSON as `serviceAccountKey.json` in repo root (this file is gitignored).
+3. Install admin SDK once:
+   ```bash
+   npm install firebase-admin
+   ```
+4. Run bootstrap script:
+   ```bash
+   SERVICE_ACCOUNT_PATH=./serviceAccountKey.json \
+   ADMIN_EMAIL=divitnadmin7@affiliate-start.in \
+   ADMIN_PASSWORD='rootpassadmin142637' \
+   ADMIN_DISPLAY_NAME='DivitNAdmin7' \
+   node scripts/create-admin.mjs
+   ```
+5. Login on the website using:
+   - Email: `divitnadmin7@affiliate-start.in`
+   - Password: `rootpassadmin142637`
+
+Notes:
+- Admin route visibility in UI depends on Firebase custom claim `admin: true`.
+- Keep admin credentials private and rotate password after first successful login.
 
 ## Firestore data model
 
