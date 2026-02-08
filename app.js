@@ -1,0 +1,266 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  getIdTokenResult
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp,
+  collection,
+  getDocs,
+  query,
+  where,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { firebaseConfig } from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const authDialog = document.getElementById("authDialog");
+const openAuthBtn = document.getElementById("openAuthBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const authMessage = document.getElementById("authMessage");
+const authDebugCode = document.getElementById("authDebugCode");
+const authFixBox = document.getElementById("authFixBox");
+const authFixSteps = document.getElementById("authFixSteps");
+const paymentForm = document.getElementById("paymentForm");
+const selectedPlanInput = document.getElementById("selectedPlanInput");
+const paymentStatus = document.getElementById("paymentStatus");
+const accessMessage = document.getElementById("accessMessage");
+const paidContent = document.getElementById("paidContent");
+const adminPanel = document.getElementById("adminPanel");
+const txList = document.getElementById("txList");
+
+let selectedPlan = "free";
+let currentUser = null;
+
+
+function logAuthError(context, error) {
+  const code = error && typeof error === "object" && "code" in error ? error.code : "unknown";
+  console.error(`[auth:${context}]`, code, error);
+}
+
+function getFriendlyAuthMessage(error) {
+  const code = error && typeof error === "object" && "code" in error ? error.code : "";
+  const domain = window.location.hostname;
+
+  const setupMessageMap = {
+    "auth/unauthorized-domain": `Unable to complete authentication. Add "${domain}" to Firebase Auth > Settings > Authorized domains.`,
+    "auth/operation-not-allowed": "Unable to complete authentication. Enable Email/Password in Firebase Auth > Sign-in method.",
+    "auth/invalid-api-key": "Unable to complete authentication. Verify firebase-config.js API key and project details.",
+    "auth/app-not-authorized": "Unable to complete authentication. Check API key restrictions and allow this website domain.",
+    "auth/api-key-not-valid.-please-pass-a-valid-api-key.": "Unable to complete authentication. API key is invalid for this Firebase project.",
+    "auth/network-request-failed": "Unable to complete authentication. Check internet/VPN/firewall and try again."
+  };
+
+  return setupMessageMap[code] || "Unable to complete authentication. Please try again.";
+}
+
+function setAuthFeedback(message, error = null) {
+  authMessage.textContent = message;
+  const code = error && typeof error === "object" && "code" in error ? error.code : "";
+  authDebugCode.textContent = code ? `Debug code: ${code}` : "";
+  renderFixSteps(error);
+}
+
+function getFixSteps(errorCode) {
+  const domain = window.location.hostname;
+  const map = {
+    "auth/unauthorized-domain": [
+      `Open Firebase Console > Authentication > Settings > Authorized domains.`,
+      `Add this exact domain: ${domain}`,
+      "Save and retry login in 1 minute."
+    ],
+    "auth/operation-not-allowed": [
+      "Open Firebase Console > Authentication > Sign-in method.",
+      "Enable Email/Password provider and save.",
+      "Retry signup/login."
+    ],
+    "auth/invalid-api-key": [
+      "Open firebase-config.js and verify apiKey/projectId/authDomain belong to same project.",
+      "In Google Cloud Console, remove/relax API key restrictions for testing.",
+      "Retry login."
+    ],
+    "auth/app-not-authorized": [
+      "In Google Cloud Console, open API key restrictions for this key.",
+      `Allow HTTP referrer: https://${domain}/*`,
+      "Retry login after saving."
+    ],
+    "auth/network-request-failed": [
+      "Turn off VPN/ad-blocker temporarily.",
+      "Try a different network and refresh page.",
+      "Retry login."
+    ]
+  };
+
+  return map[errorCode] || ["Check debug code below and follow README troubleshooting section."];
+}
+
+function renderFixSteps(error = null) {
+  const code = error && typeof error === "object" && "code" in error ? error.code : "";
+  const steps = getFixSteps(code);
+  authFixSteps.innerHTML = "";
+  steps.forEach((step) => {
+    const li = document.createElement("li");
+    li.textContent = step;
+    authFixSteps.appendChild(li);
+  });
+  authFixBox.classList.toggle("hidden", !code);
+}
+
+
+document.querySelectorAll("[data-plan]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    selectedPlan = btn.dataset.plan;
+    selectedPlanInput.value = selectedPlan.toUpperCase();
+    if (!currentUser) authDialog.showModal();
+    document.getElementById("paymentSection").scrollIntoView({ behavior: "smooth" });
+  });
+});
+
+openAuthBtn.addEventListener("click", () => authDialog.showModal());
+logoutBtn.addEventListener("click", async () => signOut(auth));
+
+document.getElementById("signupBtn").addEventListener("click", async () => {
+  const email = document.getElementById("emailInput").value;
+  const password = document.getElementById("passwordInput").value;
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+    try {
+      await setDoc(doc(db, "users", cred.user.uid), {
+        email,
+        role: "user",
+        createdAt: serverTimestamp(),
+        displayName: "Learner"
+      }, { merge: true });
+      setAuthFeedback("Account created successfully.");
+    } catch (profileError) {
+      logAuthError("profile-write", profileError);
+      setAuthFeedback("Account created. You can login now.", profileError);
+    }
+  } catch (error) {
+    logAuthError("signup", error);
+    setAuthFeedback(getFriendlyAuthMessage(error), error);
+  }
+});
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  try {
+    const email = document.getElementById("emailInput").value;
+    const password = document.getElementById("passwordInput").value;
+    await signInWithEmailAndPassword(auth, email, password);
+    setAuthFeedback("Login successful.");
+    authDialog.close();
+  } catch (error) {
+    logAuthError("login", error);
+    setAuthFeedback(getFriendlyAuthMessage(error), error);
+  }
+});
+
+paymentForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentUser) {
+    paymentStatus.textContent = "Please login first.";
+    authDialog.showModal();
+    return;
+  }
+  if (selectedPlan === "free") {
+    paymentStatus.textContent = "Free plan is active. No payment needed.";
+    return;
+  }
+
+  const transactionId = document.getElementById("transactionInput").value.trim();
+  await setDoc(doc(db, "purchases", currentUser.uid), {
+    uid: currentUser.uid,
+    plan: selectedPlan,
+    transactionId,
+    status: "Pending",
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+  paymentStatus.textContent = "Payment under verification";
+});
+
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  openAuthBtn.classList.toggle("hidden", Boolean(user));
+  logoutBtn.classList.toggle("hidden", !user);
+  if (!user) {
+    accessMessage.textContent = "Guest access: Free plan content only.";
+    paidContent.classList.add("hidden");
+    adminPanel.classList.add("hidden");
+    return;
+  }
+
+  const token = await getIdTokenResult(user, true);
+  const isAdmin = Boolean(token.claims.admin);
+  const purchaseSnap = await getDoc(doc(db, "purchases", user.uid));
+  const purchase = purchaseSnap.exists() ? purchaseSnap.data() : null;
+
+  if (purchase?.status === "Approved") {
+    accessMessage.textContent = `Approved ${purchase.plan.toUpperCase()} plan: full course unlocked.`;
+    paidContent.classList.remove("hidden");
+  } else {
+    accessMessage.textContent = "Logged in. Paid content unlocks after verified approval.";
+    paidContent.classList.add("hidden");
+  }
+
+  if (isAdmin) {
+    adminPanel.classList.remove("hidden");
+    await loadTransactions();
+  } else {
+    adminPanel.classList.add("hidden");
+  }
+});
+
+async function loadTransactions() {
+  txList.innerHTML = "";
+  const pending = await getDocs(query(collection(db, "purchases"), where("status", "==", "Pending")));
+  pending.forEach((entry) => {
+    const data = entry.data();
+    const item = document.createElement("article");
+    item.innerHTML = `
+      <p><strong>UID:</strong> ${data.uid}</p>
+      <p><strong>Plan:</strong> ${data.plan}</p>
+      <p><strong>Transaction ID:</strong> ${data.transactionId}</p>
+      <button class="btn" data-action="approve" data-id="${entry.id}">Approve</button>
+      <button class="btn ghost" data-action="reject" data-id="${entry.id}">Reject</button>
+    `;
+    txList.appendChild(item);
+  });
+
+  txList.querySelectorAll("button[data-action]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const nextStatus = button.dataset.action === "approve" ? "Approved" : "Rejected";
+      await updateDoc(doc(db, "purchases", button.dataset.id), {
+        status: nextStatus,
+        verifiedAt: serverTimestamp()
+      });
+      await loadTransactions();
+    });
+  });
+}
+
+const revealElements = document.querySelectorAll(".reveal");
+
+if ("IntersectionObserver" in window) {
+  revealElements.forEach((el) => el.classList.add("animate-init"));
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add("visible");
+    });
+  }, { threshold: 0.1 });
+  revealElements.forEach((el) => observer.observe(el));
+}
+
+selectedPlanInput.value = "FREE";
